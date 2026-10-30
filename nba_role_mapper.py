@@ -5,8 +5,6 @@ from public play-by-play data (https://github.com/shufinskiy/nba_data).
 Per-75 style stats + a matchup-based size index -> split-half stability picks the
 size weight and number of positions -> Gaussian mixture and Bayesian Gaussian
 mixture fits -> one map and CSV per model in ./output.
-
-  pip install numpy pandas scikit-learn
   python nba_role_mapper.py --season 2023              # 2023-24, both models
   python nba_role_mapper.py --season 2023 --model bgmm --k 12
 
