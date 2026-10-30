@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NBA Role Map</title>
+<style>
+:root{--bg:#121211;--panel:#1c1b19;--line:#3a3935;--text:#e9e7e0;--muted:#9a978d;
+--guard:#6f7bf7;--wing:#2bb39a;--big:#e0894a}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+font:13px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+#app{display:flex;height:100vh}#stage{position:relative;flex:1;min-width:0}
+canvas{display:block;width:100%;height:100%}
+#head{position:absolute;top:12px;left:14px;right:14px;max-width:620px;pointer-events:none}
+#head h1{margin:0 0 2px;font-size:17px;font-weight:600}#head p{margin:0;color:var(--muted)}
+#legend{position:absolute;bottom:12px;left:14px;right:14px;color:var(--muted);display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+#tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);
+border-radius:8px;padding:8px 10px;max-width:320px;display:none;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#tip b{display:block;margin-bottom:3px}#tip .m{color:var(--muted)}
+#side{width:300px;border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:14px;display:none}
+#side h2{font-size:15px;margin:0 0 4px}#side .m{color:var(--muted);margin-bottom:10px}
+#side table{width:100%;border-collapse:collapse}#side td{padding:3px 0;border-bottom:1px solid #2a2926}
+#side td.p{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+#close{float:right;background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer}
+@media (max-width:700px){html,body{height:auto}#app{display:block;height:auto}
+#side{width:auto;border-left:0;border-top:1px solid var(--line)}}
+</style></head><body>
+<div id="app"><div id="stage"><canvas id="c"></canvas>
+<div id="head"><h1>NBA Role Map</h1><p id="sub"></p></div>
+<div id="legend"><span><i class="sw" style="background:var(--guard)"></i>Guard</span>
+<span><i class="sw" style="background:var(--wing)"></i>Wing</span>
+<span><i class="sw" style="background:var(--big)"></i>Big</span>
+<span>solid line = players between two positions</span><span>dashed = nearest position</span><span>ring = split group</span><span>hover for details, click for roster</span></div>
+<div id="tip"></div></div>
+<aside id="side"><button id="close" aria-label="Close">&times;</button><h2 id="sname"></h2><div class="m" id="smeta"></div>
+<table id="stab"></table></aside></div>
+<script>
+const N=[{"id": 0, "name": "Guard/Wing: corner 3 / transition", "tag": "Guard/Wing", "traits": "corner 3 / transition", "n": 114, "cls2": "Wing", "x": 0.3874172185430464, "y": 0.33611686442019056, "cls": "Guard", "medoid": "Dillon Brooks", "sig": ["c3FGA +0.8", "self_created -0.7", "paintFGA -0.7", "rimFGA -0.6", "transition_share +0.6"], "members": [["Ochai Agbaji", "UTA", 0.99], ["Aaron Nesmith", "IND", 0.99], ["Ben Sheppard", "IND", 0.99], ["Josh Green", "DAL", 0.99], ["Amir Coffey", "LAC", 0.99], ["Luguentz Dort", "OKC", 0.99], ["Gradey Dick", "TOR", 0.99], ["Taurean Prince", "LAL", 0.99], ["Cameron Johnson", "BKN", 0.99], ["Doug McDermott", "SAS", 0.99], ["Ziaire Williams", "MEM", 0.99], ["Isaiah Joe", "OKC", 0.99], ["Terance Mann", "LAC", 0.99], ["Derrick Jones Jr.", "DAL", 0.99], ["Simone Fontecchio", "UTA", 0.99], ["Nickeil Alexander-Walker", "MIN", 0.99], ["Cedi Osman", "SAS", 0.99], ["Corey Kispert", "WAS", 0.99], ["Caleb Martin", "MIA", 0.99], ["Sam Hauser", "BOS", 0.99], ["Gary Harris", "ORL", 0.98], ["Jordan Hawkins", "NOP", 0.98], ["Keegan Murray", "SAC", 0.98], ["Max Christie", "LAL", 0.98], ["John Konchar", "MEM", 0.98], ["Haywood Highsmith", "MIA", 0.98], ["Dillon Brooks", "HOU", 0.98], ["Max Strus", "CLE", 0.98], ["Julian Champagnie", "SAS", 0.98], ["Cason Wallace", "OKC", 0.98], ["Dorian Finney-Smith", "BKN", 0.98], ["Josh Richardson", "MIA", 0.98], ["Malik Beasley", "MIL", 0.98], ["Jaden McDaniels", "MIN", 0.98], ["Kevin Huerter", "SAC", 0.98], ["Isaac Okoro", "CLE", 0.98], ["Moses Moody", "GSW", 0.98], ["Eric Gordon", "PHX", 0.98], ["Cam Reddish", "LAL", 0.97], ["Taylor Hendricks", "UTA", 0.97], ["Justin Holiday", "DEN", 0.97], ["Ayo Dosunmu", "CHI", 0.97], ["Luke Kennard", "MEM", 0.97], ["Bilal Coulibaly", "WAS", 0.97], ["Aaron Wiggins", "OKC", 0.97], ["Donte DiVincenzo", "NYK", 0.97], ["Herbert Jones", "NOP", 0.97], ["OG Anunoby", "TOR", 0.97], ["Keon Ellis", "SAC", 0.97], ["Tim Hardaway Jr.", "DAL", 0.97], ["Troy Brown Jr.", "DET", 0.96], ["Kris Murray", "POR", 0.96], ["Dean Wade", "CLE", 0.96], ["Duncan Robinson", "MIA", 0.95], ["Christian Braun", "DEN", 0.95], ["Trey Murphy III", "NOP", 0.95], ["Quentin Grimes", "NYK", 0.95], ["Trey Lyles", "SAC", 0.94], ["Buddy Hield", "IND", 0.94], ["Kentavious Caldwell-Pope", "DEN", 0.94], ["Pat Connaughton", "MIL", 0.94], ["Jake LaRavia", "MEM", 0.93], ["Grayson Allen", "PHX", 0.93], ["Miles McBride", "NYK", 0.93], ["Anthony Black", "ORL", 0.92], ["Dante Exum", "DAL", 0.92], ["Jalen Suggs", "ORL", 0.92], ["Kenrich Williams", "OKC", 0.92], ["Klay Thompson", "GSW", 0.92], ["Josh Hart", "NYK", 0.91], ["Garrison Mathews", "ATL", 0.91], ["Norman Powell", "LAC", 0.91], ["Bojan Bogdanovic", "DET", 0.9], ["De'Andre Hunter", "ATL", 0.89], ["Jae'Sean Tate", "HOU", 0.89], ["Obi Toppin", "IND", 0.89], ["Mikal Bridges", "BKN", 0.89], ["David Roddy", "MEM", 0.88], ["Toumani Camara", "POR", 0.88], ["Patrick Williams", "CHI", 0.88], ["Royce O'Neale", "BKN", 0.87], ["Bryce McGowens", "CHA", 0.87], ["GG Jackson", "MEM", 0.87], ["Torrey Craig", "CHI", 0.87], ["Jaime Jaquez Jr.", "MIA", 0.86], ["Nicolas Batum", "PHI", 0.85], ["Jeremy Sochan", "SAS", 0.84], ["Kyle Lowry", "MIA", 0.84], ["Kelly Oubre Jr.", "PHI", 0.84], ["Vince Williams Jr.", "MEM", 0.84], ["Gary Trent Jr.", "TOR", 0.84], ["Michael Porter Jr.", "DEN", 0.83], ["Malaki Branham", "SAS", 0.82], ["Alex Caruso", "CHI", 0.82], ["Harrison Barnes", "SAC", 0.8], ["Rui Hachimura", "LAL", 0.79], ["Andrew Wiggins", "GSW", 0.79], ["Nikola Jovic", "MIA", 0.79], ["Bogdan Bogdanovic", "ATL", 0.77], ["Sam Merrill", "CLE", 0.77], ["Keldon Johnson", "SAS", 0.74], ["Ausar Thompson", "DET", 0.73], ["Peyton Watson", "DEN", 0.73], ["Jrue Holiday", "BOS", 0.72], ["Alec Burks", "DET", 0.71], ["Jevon Carter", "CHI", 0.68], ["Jaden Hardy", "DAL", 0.65], ["De'Anthony Melton", "PHI", 0.64], ["Jabari Smith Jr.", "HOU", 0.62], ["Jae Crowder", "MIL", 0.57], ["Marcus Morris Sr.", "PHI", 0.57], ["Saddiq Bey", "ATL", 0.56], ["Davion Mitchell", "SAC", 0.54], ["Devin Vassell", "SAS", 0.44]]}, {"id": 1, "name": "Wing/Big: defensive glass / offensive glass", "tag": "Wing/Big", "traits": "defensive glass / offensive glass", "n": 129, "cls2": "", "x": 0.7031931824015606, "y": 1.0, "cls": "Big", "medoid": "Lauri Markkanen", "sig": ["DREB +0.7", "OREB +0.6", "putback +0.6", "rimFGA +0.6", "c3FGA -0.6"], "members": [["Andre Drummond", "CHI", 1.0], ["Joel Embiid", "PHI", 1.0], ["Nikola Jokic", "DEN", 1.0], ["Dwight Powell", "DAL", 1.0], ["Jakob Poeltl", "TOR", 1.0], ["Clint Capela", "ATL", 1.0], ["Isaiah Hartenstein", "NYK", 1.0], ["Day'Ron Sharpe", "BKN", 1.0], ["Rudy Gobert", "MIN", 1.0], ["Deandre Ayton", "POR", 1.0], ["Bam Adebayo", "MIA", 1.0], ["Nikola Vucevic", "CHI", 1.0], ["Giannis Antetokounmpo", "MIL", 1.0], ["Victor Wembanyama", "SAS", 1.0], ["Alperen Sengun", "HOU", 1.0], ["Jonas Valanciunas", "NOP", 1.0], ["Jusuf Nurkic", "PHX", 1.0], ["Domantas Sabonis", "SAC", 1.0], ["Anthony Davis", "LAL", 1.0], ["Jaren Jackson Jr.", "MEM", 1.0], ["Jalen Duren", "DET", 1.0], ["Nick Richards", "CHA", 1.0], ["Goga Bitadze", "ORL", 1.0], ["Xavier Tillman", "MEM", 1.0], ["Marvin Bagley III", "WAS", 1.0], ["Daniel Gafford", "WAS", 1.0], ["Kevon Looney", "GSW", 1.0], ["Ivica Zubac", "LAC", 1.0], ["James Wiseman", "DET", 1.0], ["DeMar DeRozan", "CHI", 1.0], ["Jarrett Allen", "CLE", 1.0], ["Drew Eubanks", "PHX", 1.0], ["Walker Kessler", "UTA", 1.0], ["Trayce Jackson-Davis", "GSW", 1.0], ["Zach Collins", "SAS", 1.0], ["Zion Williamson", "NOP", 1.0], ["Paul Reed", "PHI", 1.0], ["Jaylin Williams", "OKC", 1.0], ["Nic Claxton", "BKN", 1.0], ["Myles Turner", "IND", 1.0], ["Larry Nance Jr.", "NOP", 1.0], ["Jaxson Hayes", "LAL", 1.0], ["Chet Holmgren", "OKC", 1.0], ["Luke Kornet", "BOS", 1.0], ["Evan Mobley", "CLE", 1.0], ["Draymond Green", "GSW", 1.0], ["Kyle Anderson", "MIN", 1.0], ["Brook Lopez", "MIL", 1.0], ["Dereck Lively II", "DAL", 1.0], ["Kevin Love", "MIA", 1.0], ["Kevin Durant", "PHX", 1.0], ["Kristaps Porzingis", "BOS", 1.0], ["Bobby Portis", "MIL", 1.0], ["Jalen Smith", "IND", 1.0], ["Onyeka Okongwu", "ATL", 1.0], ["Wendell Carter Jr.", "ORL", 1.0], ["Precious Achiuwa", "NYK", 1.0], ["Moritz Wagner", "ORL", 1.0], ["Kelly Olynyk", "UTA", 1.0], ["Karl-Anthony Towns", "MIN", 1.0], ["Jimmy Butler", "MIA", 1.0], ["Duop Reath", "POR", 1.0], ["Maxi Kleber", "DAL", 1.0], ["Dyson Daniels", "NOP", 1.0], ["Daniel Theis", "LAC", 1.0], ["Julius Randle", "NYK", 1.0], ["Paolo Banchero", "ORL", 1.0], ["Jordan Goodwin", "PHX", 1.0], ["Trendon Watford", "BKN", 1.0], ["Josh Giddey", "OKC", 1.0], ["Amen Thompson", "HOU", 1.0], ["Brandon Ingram", "NOP", 1.0], ["Aaron Gordon", "DEN", 1.0], ["John Collins", "UTA", 1.0], ["Jonathan Isaac", "ORL", 1.0], ["Kris Dunn", "UTA", 1.0], ["Shai Gilgeous-Alexander", "OKC", 1.0], ["Pascal Siakam", "TOR", 1.0], ["Markelle Fultz", "ORL", 0.99], ["Jeff Green", "HOU", 0.99], ["Kyle Kuzma", "WAS", 0.99], ["Russell Westbrook", "LAC", 0.99], ["Dario Saric", "GSW", 0.99], ["Killian Hayes", "DET", 0.99], ["Scottie Barnes", "TOR", 0.99], ["Cam Whitmore", "HOU", 0.99], ["Jabari Walker", "POR", 0.98], ["Christian Wood", "LAL", 0.98], ["LeBron James", "LAL", 0.98], ["Kawhi Leonard", "LAC", 0.98], ["Georges Niang", "CLE", 0.98], ["P.J. Washington", "CHA", 0.97], ["Gordon Hayward", "CHA", 0.97], ["Jalen Johnson", "ATL", 0.97], ["Tyus Jones", "WAS", 0.97], ["T.J. McConnell", "IND", 0.94], ["Matisse Thybulle", "POR", 0.94], ["Chimezie Metu", "PHX", 0.92], ["Isaiah Stewart", "DET", 0.91], ["Jonathan Kuminga", "GSW", 0.91], ["Jose Alvarado", "NOP", 0.91], ["Al Horford", "BOS", 0.89], ["Bruce Brown", "IND", 0.89], ["Jerami Grant", "POR", 0.88], ["Tre Jones", "SAS", 0.88], ["Grant Williams", "DAL", 0.84], ["Blake Wesley", "SAS", 0.82], ["Dennis Smith Jr.", "BKN", 0.8], ["Dalano Banton", "POR", 0.8], ["RJ Barrett", "TOR", 0.76], ["Franz Wagner", "ORL", 0.7], ["Caleb Houstan", "ORL", 0.69], ["Jayson Tatum", "BOS", 0.66], ["Jalen Williams", "OKC", 0.66], ["Tobias Harris", "PHI", 0.66], ["Josh Okogie", "PHX", 0.65], ["Naz Reid", "MIN", 0.64], ["Payton Pritchard", "BOS", 0.64], ["Miles Bridges", "CHA", 0.64], ["Devin Booker", "PHX", 0.63], ["Tre Mann", "CHA", 0.62], ["Deni Avdija", "WAS", 0.6], ["Andrew Nembhard", "IND", 0.59], ["Naji Marshall", "NOP", 0.57], ["Paul George", "LAC", 0.56], ["Santi Aldama", "MEM", 0.53], ["Lauri Markkanen", "UTA", 0.52], ["CJ McCollum", "NOP", 0.51], ["Bennedict Mathurin", "IND", 0.43]]}, {"id": 2, "name": "Guard: playmaker / self-creator", "tag": "Guard", "traits": "playmaker / self-creator", "n": 59, "cls2": "", "x": 0.28173756875070155, "y": 0.0, "cls": "Guard", "medoid": "Malcolm Brogdon", "sig": ["three_ast_share -1.4", "rim_ast_share -1.3", "AST +1.1", "self_created +1.1", "ab3FGA +0.9"], "members": [["Damian Lillard", "MIL", 1.0], ["Fred VanVleet", "HOU", 0.99], ["Tyrese Haliburton", "IND", 0.99], ["James Harden", "LAC", 0.99], ["Scoot Henderson", "POR", 0.99], ["Tyrese Maxey", "PHI", 0.99], ["Spencer Dinwiddie", "BKN", 0.98], ["Malcolm Brogdon", "POR", 0.98], ["Jalen Brunson", "NYK", 0.98], ["Trae Young", "ATL", 0.98], ["Marcus Sasser", "DET", 0.98], ["Kyrie Irving", "DAL", 0.98], ["Vasilije Micic", "CHA", 0.97], ["Donovan Mitchell", "CLE", 0.97], ["Jamal Murray", "DEN", 0.97], ["Jordan Poole", "WAS", 0.97], ["Jalen Green", "HOU", 0.97], ["D'Angelo Russell", "LAL", 0.97], ["Dejounte Murray", "ATL", 0.96], ["Terry Rozier", "CHA", 0.96], ["Austin Reaves", "LAL", 0.96], ["Cade Cunningham", "DET", 0.96], ["Darius Garland", "CLE", 0.96], ["Keyonte George", "UTA", 0.96], ["Malik Monk", "SAC", 0.96], ["Immanuel Quickley", "TOR", 0.95], ["Coby White", "CHI", 0.95], ["Dennis Schroder", "TOR", 0.95], ["Reggie Jackson", "DEN", 0.95], ["De'Aaron Fox", "SAC", 0.95], ["Jordan Clarkson", "UTA", 0.94], ["Desmond Bane", "MEM", 0.94], ["Zach LaVine", "CHI", 0.94], ["Anthony Edwards", "MIN", 0.93], ["Derrick White", "BOS", 0.93], ["Malachi Flynn", "TOR", 0.93], ["Cameron Payne", "MIL", 0.91], ["Talen Horton-Tucker", "UTA", 0.9], ["Luka Doncic", "DAL", 0.89], ["Caris LeVert", "CLE", 0.89], ["Mike Conley", "MIN", 0.88], ["Cam Thomas", "BKN", 0.84], ["Cole Anthony", "ORL", 0.83], ["Anfernee Simons", "POR", 0.82], ["Patrick Beverley", "PHI", 0.79], ["Aaron Holiday", "HOU", 0.78], ["Shaedon Sharpe", "POR", 0.77], ["Khris Middleton", "MIL", 0.76], ["Tyler Herro", "MIA", 0.75], ["Collin Sexton", "UTA", 0.73], ["Jaylen Brown", "BOS", 0.68], ["Brandin Podziemski", "GSW", 0.67], ["Lonnie Walker IV", "BKN", 0.65], ["Bradley Beal", "PHX", 0.65], ["Jaden Ivey", "DET", 0.62], ["Chris Paul", "GSW", 0.62], ["Joe Ingles", "ORL", 0.56], ["Stephen Curry", "GSW", 0.53], ["Brandon Miller", "CHA", 0.52]]}],E=[{"a": 1, "b": 2, "type": "boundary", "k": 12, "players": ["DeMar DeRozan", "Paolo Banchero", "Kevin Durant", "Jayson Tatum", "LeBron James", "Franz Wagner", "Kawhi Leonard", "Kyle Kuzma"]}, {"a": 0, "b": 2, "type": "boundary", "k": 27, "players": ["Paul George", "Brandon Miller", "Devin Vassell", "Tre Jones", "Jalen Suggs", "Brandin Podziemski", "Tyus Jones", "Bruce Brown"]}, {"a": 0, "b": 1, "type": "boundary", "k": 16, "players": ["Deni Avdija", "P.J. Washington", "Keldon Johnson", "RJ Barrett", "Rui Hachimura", "Jerami Grant", "Obi Toppin", "Ausar Thompson"]}],M={"season": "2023-24", "players": 302, "stability": 0.633, "size_weight": 3.0, "model": "Bayesian GMM"};
+const css=getComputedStyle(document.documentElement);
+const COL={Guard:css.getPropertyValue('--guard'),Wing:css.getPropertyValue('--wing'),Big:css.getPropertyValue('--big')};
+document.getElementById('sub').textContent=[M.season,N.length+' positions',M.players+' players',
+M.model,'stability '+M.stability.toFixed(2)].join('  \u00b7  ');
+const cv=document.getElementById('c'),tip=document.getElementById('tip'),stage=document.getElementById('stage');
+let W=0,H=0,small=false;const rad=n=>(small?6:9)+Math.sqrt(n.n)*(small?1.7:2.6);
+const F1=()=>'600 '+(small?11:12.5)+'px system-ui,sans-serif',F2=()=>(small?10:11.5)+'px system-ui,sans-serif';
+function layout(){small=innerWidth<700;
+stage.style.height=small?Math.max(innerHeight*0.85,N.length*78+170)+'px':'';
+W=stage.clientWidth;H=stage.clientHeight;
+const m=document.createElement('canvas').getContext('2d');
+N.forEach(n=>{m.font=F1();n.hw=Math.max(m.measureText(n.traits).width,2*rad(n))/2+6;n.lh=small?16:19;});
+const top=document.getElementById('head').offsetHeight+18,bot=H-document.getElementById('legend').offsetHeight-22;
+const L=Math.max(...N.map(n=>n.hw))+8,R=W-L;
+N.forEach(n=>{n.px=L+n.x*Math.max(R-L,1);n.py=top+n.lh+rad(n)+(1-n.y)*Math.max(bot-top-n.lh-2*rad(n),1);});
+const box=n=>[n.px-n.hw,n.px+n.hw,n.py-rad(n)-n.lh,n.py+rad(n)+4];
+for(let it=0;it<400;it++){let moved=false;
+for(let i=0;i<N.length;i++)for(let j=i+1;j<N.length;j++){const a=N[i],b=N[j],A=box(a),B=box(b);
+const ox=Math.min(A[1],B[1])-Math.max(A[0],B[0]),oy=Math.min(A[3],B[3])-Math.max(A[2],B[2]);
+if(ox>0&&oy>0){moved=true;if(ox<oy){const s=(ox/2+1)*(a.px<b.px?-1:1);a.px+=s;b.px-=s;}
+else{const s=(oy/2+1)*(a.py<b.py?-1:1);a.py+=s;b.py-=s;}}}
+N.forEach(n=>{n.px=Math.max(n.hw+4,Math.min(W-n.hw-4,n.px));
+n.py=Math.max(top+n.lh+rad(n),Math.min(bot-rad(n),n.py));});if(!moved)break;}}
+function draw(){const dpr=devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;const x=cv.getContext('2d');
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+E.forEach(e=>{const a=N[e.a],b=N[e.b];x.beginPath();x.moveTo(a.px,a.py);x.lineTo(b.px,b.py);
+x.setLineDash(e.type==='proximity'?[5,4]:[]);x.lineWidth=e.type==='proximity'?1.6:Math.min(1.8+e.k/3,6);
+x.strokeStyle=e.hot?'#ffffff':(e.type==='proximity'?'rgba(190,187,178,.6)':'rgba(214,211,202,.8)');
+x.stroke();});x.setLineDash([]);
+N.forEach(n=>{const r=rad(n);x.beginPath();x.arc(n.px,n.py,r,0,7);x.fillStyle=COL[n.cls];
+x.globalAlpha=n.hot?1:.88;x.fill();x.globalAlpha=1;
+if(n.cls2){x.beginPath();x.arc(n.px,n.py,r+3,0,7);x.lineWidth=3;x.strokeStyle=COL[n.cls2];x.stroke();}
+if(n.sel){x.beginPath();x.arc(n.px,n.py,r+(n.cls2?7:3),0,7);x.lineWidth=2;x.strokeStyle='#fff';x.stroke();}
+if(r>=15){x.font='600 11px system-ui,sans-serif';x.fillStyle='rgba(18,18,17,.85)';x.textAlign='center';
+x.textBaseline='middle';x.fillText(n.n,n.px,n.py+.5);x.textBaseline='alphabetic';}});
+x.textAlign='center';x.font=F1();x.fillStyle='#e9e7e0';
+N.forEach(n=>x.fillText(n.traits,n.px,n.py-rad(n)-(n.cls2?10:6)));}
+function nodeAt(mx,my){let h=null;N.forEach(n=>{if(Math.hypot(mx-n.px,my-n.py)<=rad(n)+3)h=n;});return h;}
+function edgeAt(mx,my){let best=null,bd=7;E.forEach(e=>{const a=N[e.a],b=N[e.b];
+const L=(b.px-a.px)**2+(b.py-a.py)**2||1;let t=((mx-a.px)*(b.px-a.px)+(my-a.py)*(b.py-a.py))/L;
+t=Math.max(.08,Math.min(.92,t));const d=Math.hypot(mx-(a.px+t*(b.px-a.px)),my-(a.py+t*(b.py-a.py)));
+if(d<bd){bd=d;best=e;}});return best;}
+function show(html,mx,my){tip.innerHTML=html;tip.style.display='block';
+const r=stage.getBoundingClientRect();let l=mx+14,t=my+10;
+if(l+330>r.width)l=mx-334;if(t+200>r.height)t=my-200;tip.style.left=l+'px';tip.style.top=t+'px';}
+let drag=null,moved=false;
+cv.addEventListener('mousedown',e=>{const r=cv.getBoundingClientRect();drag=nodeAt(e.clientX-r.left,e.clientY-r.top);moved=false;});
+addEventListener('mouseup',e=>{if(drag&&!moved)openSide(drag);drag=null;});
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+if(drag){drag.px=mx;drag.py=my;moved=true;draw();return;}
+N.forEach(n=>n.hot=false);E.forEach(x=>x.hot=false);const n=nodeAt(mx,my),ed=n?null:edgeAt(mx,my);
+if(n){n.hot=true;show('<b>'+n.name+'</b><span class="m">'+n.n+' players \u00b7 most typical: '+n.medoid+
+'</span><br>'+n.members.slice(0,6).map(m=>m[0]).join(', ')+'<br><span class="m">signature: '+n.sig.join(', ')+'</span>',mx,my);}
+else if(ed){ed.hot=true;show(ed.type==='proximity'?'<b>Nearest positions</b><span class="m">No players sit on this boundary; the line only keeps the map connected.</span>':
+'<b>'+ed.k+' boundary player'+(ed.k>1?'s':'')+'</b><span class="m">'+N[ed.a].name+' &harr; '+N[ed.b].name+'</span><br>'+ed.players.join(', ')+(ed.k>8?', ...':''),mx,my);}
+else tip.style.display='none';cv.style.cursor=n?'grab':'default';draw();});
+cv.addEventListener('mouseleave',()=>{tip.style.display='none';N.forEach(n=>n.hot=false);E.forEach(x=>x.hot=false);draw();});
+function openSide(n){N.forEach(m=>m.sel=false);n.sel=true;document.getElementById('side').style.display='block';
+document.getElementById('sname').textContent=n.name;
+document.getElementById('smeta').textContent=n.n+' players. Number = probability of belonging here.';
+document.getElementById('stab').innerHTML=n.members.map(m=>'<tr><td>'+m[0]+' <span style="color:#9a978d">'+(m[1]||'')+
+'</span></td><td class="p">'+m[2].toFixed(2)+'</td></tr>').join('');
+requestAnimationFrame(()=>{resize();});}
+document.getElementById('close').onclick=()=>{document.getElementById('side').style.display='none';N.forEach(m=>m.sel=false);resize();};
+function resize(){layout();draw();}
+layout();draw();addEventListener('resize',resize);
+</script></body></html>

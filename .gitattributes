@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Ignore all files in a specific folder (like node_modules or vendor)
+vendor/ linguist-vendored
+
+# Ignore all files of a specific extension (e.g., hide CSS or HTML)
+*.css linguist-vendored
+*.html linguist-detectable=false
